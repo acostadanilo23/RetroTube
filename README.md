@@ -9,7 +9,8 @@ RetroTube is a lightweight, privacy-focused YouTube client designed to bring bac
 ## Features
 
 - **Lightweight**: fast loading times and minimal resource usage.
-- **Privacy-Focused**: Proxied requests to minimize tracking.
+- **Privacy-Focused**: Proxied requests with no disk caching to minimize tracking.
+- **Security Hardened**: Protected with CSP, Rate Limiting, and SSRF prevention.
 - **PWA Support**: Installable on mobile and desktop devices.
 - **Distraction-Free**: No algorithmic feeds, just what you want to watch.
 - **Themes**: Includes Dark Mode and Terminal themes.

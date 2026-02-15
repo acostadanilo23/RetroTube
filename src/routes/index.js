@@ -18,54 +18,41 @@ function cleanText(text) {
     });
 }
 
-// Image Proxy with Disk Cache
+// Secure Image Proxy
 router.get('/proxy-image', async (req, res) => {
     const url = req.query.url;
     if (!url) return res.status(404).send('No URL provided');
 
     try {
-        const crypto = require('crypto');
-        const fs = require('fs');
-        const path = require('path');
         const fetch = require('node-fetch');
+        const parsedUrl = new URL(url);
 
-        // Create cache key (MD5 hash of URL)
-        const hash = crypto.createHash('md5').update(url).digest('hex');
-        const cacheDir = path.join(__dirname, '../public/cache');
-
-        // Try to guess extension from URL, default to .jpg handles most cases
-        // (files without extension are served as octet-stream by express, but we can force headers if needed)
-        // We'll store without extension and let browser sniff or just fetch fresh if headers matter criticaly.
-        // Actually, let's just store as binary and serve.
-        const filePath = path.join(cacheDir, hash);
-
-        if (fs.existsSync(filePath)) {
-            // Serve from disk (fast)
-            // We set a generic long cache header for browser
-            res.setHeader('Cache-Control', 'public, max-age=31536000');
-            return res.sendFile(filePath);
+        // Security: Whitelist allowed domains to prevent SSRF
+        const allowedDomains = ['i.ytimg.com', 'yt3.ggpht.com', 'lh3.googleusercontent.com'];
+        if (!allowedDomains.includes(parsedUrl.hostname)) {
+            return res.status(403).send('Domain not allowed');
         }
 
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
-
-        // Safety: Check content-length
-        const size = parseInt(response.headers.get('content-length'));
-        if (size && size > 5 * 1024 * 1024) { // 5MB limit
-            throw new Error('Image too large');
+        // Security: Only allow https
+        if (parsedUrl.protocol !== 'https:') {
+            return res.status(403).send('Protocol not allowed');
         }
 
-        const buffer = await response.buffer();
-        const contentType = response.headers.get('content-type') || 'image/jpeg';
-
-        // Write to disk in background (non-blocking)
-        fs.writeFile(filePath, buffer, (err) => {
-            if (err) console.error('[Proxy Cache] Write failed:', err.message);
+        const response = await fetch(url, {
+            headers: { 'User-Agent': 'RetroTube/1.0' }
         });
 
-        res.setHeader('Content-Type', contentType);
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-        res.send(buffer);
+        if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
+
+        // Forward Content-Type
+        const contentType = response.headers.get('content-type');
+        if (contentType) res.setHeader('Content-Type', contentType);
+
+        // Cache control for browser
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
+
+        // Stream directly to client (No disk write)
+        response.body.pipe(res);
 
     } catch (error) {
         console.error(`[Proxy Error] ${error.message}`);

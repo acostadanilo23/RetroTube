@@ -10,7 +10,7 @@ RetroTube follows a standard **Server-Side Rendering (SSR)** architecture using 
 graph TD
     Client[Browser] <-->|HTTP Requests| Server[Express Server]
     Server <-->|Scraping/Requests| YouTube[YouTube]
-    Server <-->|File I/O| Storage[JSON Storage]
+    Server <-->|File I/O| Storage[JSON Storage (History/Favorites)]
 ```
 
 ### Flow
@@ -50,7 +50,7 @@ graph TD
 | `GET` | `/search` | **Search**. Accepts `q` (query) and `type` (video/playlist). Renders `search.ejs`. |
 | `GET` | `/watch` | **Watch Page**. Accepts `v` (videoId). Fetches metadata + comments. Renders `watch.ejs`. |
 | `GET` | `/channel` | **Channel Page**. Accepts `name` or `id`. Fetches channel info + videos. Renders `channel.ejs`. |
-| `GET` | `/proxy-image` | **Image Proxy**. Accepts `url`. Fetches and caches images to avoid tracking. |
+| `GET` | `/proxy-image` | **Image Proxy**. Accepts `url`. Streams images from YouTube/Google to client (no disk write). |
 | `GET` | `/history` | **History**. Displays watched videos from `history.json`. |
 | `GET` | `/favorites` | **Favorites**. Displays saved videos from `favorites.json`. |
 | `GET` | `/subscriptions` | **Subscriptions**. Displays feed from subscribed channels. |
@@ -93,20 +93,22 @@ Simple JSON-based storage is used to keep the app database-free and portable.
 ## 6. Security Strategy
 
 1.  **Image Proxy (`/proxy-image`)**:
-    -   YouTube thumbnails are served from `googleusercontent.com`, which tracks users.
-    -   *Mitigation*: The server fetches the image and serves it to the client. The client never connects directly to Google for images.
+    -   *Risk*: SSRF and Disk Exhaustion.
+    -   *Mitigation*: Strict whitelist of allowed domains (`ytimg.com`, `ggpht.com`). Response is streamed directly to client without writing to disk.
 
 2.  **Sanitization**:
-    -   Video descriptions and comments contain HTML.
-    -   *Mitigation*: We use `sanitize-html` to strip dangerous tags (scripts, iframes) before rendering.
+    -   *Risk*: XSS in descriptions/comments.
+    -   *Mitigation*: `sanitize-html` strips dangerous tags.
 
-3.  **No User Tracking**:
+3.  **Security Headers (Helmet)**:
+    -   *Implementation*: comprehensive Content Security Policy (CSP) configured to allow YouTube embeds while blocking malicious scripts.
+
+4.  **Rate Limiting**:
+    -   *Implementation*: Global limit of 100 requests per 15 minutes per IP to prevent DoS.
+
+5.  **No User Tracking**:
     -   The app does not use cookies for tracking, only for basic preferences (theme).
-    -   Requests to YouTube are made from the Server IP, masking the Client IP.
-
-4.  **Content Security Policy (CSP)**:
-    -   *Status*: basic implementation.
-    -   *Strategy*: Since we embed YouTube iframes, we must allow `youtube-nocookie.com`.
+    -   Requests to YouTube are made from the Server IP.
 
 ## 7. Performance Optimization
 
