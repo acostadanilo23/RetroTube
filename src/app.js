@@ -34,7 +34,8 @@ app.use(helmet({
             connectSrc: ["'self'", "www.youtube.com"],
             mediaSrc: ["'self'", "googlevideo.com"]
         }
-    }
+    },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 
 // Rate Limiting

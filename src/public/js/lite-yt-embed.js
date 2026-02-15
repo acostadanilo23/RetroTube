@@ -43,6 +43,7 @@ class LiteYTEmbed extends HTMLElement {
 
         const params = new URLSearchParams(this.getAttribute('params') || []);
         params.append('autoplay', '1');
+        params.append('origin', window.location.origin);
 
         const iframe = document.createElement('iframe');
         iframe.width = 560;
