@@ -1,0 +1,42 @@
+<%- include('header') %>
+
+    <h2>Watch History</h2>
+
+    <% if (history.length===0) { %>
+        <p>No videos watched yet. <a href="/">Start browsing!</a></p>
+        <% } else { %>
+            <form action="/history/clear" method="POST" style="margin-bottom: 15px;">
+                <button type="submit" onclick="return confirm('Clear all history?')">Clear History</button>
+            </form>
+
+            <div class="results">
+                <% history.forEach(video=> { %>
+                    <div class="result-item">
+                        <a href="/watch?v=<%= video.id %><%= mode === 'text' ? '&mode=text' : '' %>"
+                            style="text-decoration: none; color: black; display: flex; gap: 10px;">
+                            <% if (mode !=='text' ) { %>
+                                <div style="flex-shrink: 0;">
+                                    <img src="/proxy-image?url=<%= encodeURIComponent(video.thumbnail) %>"
+                                        alt="<%= video.title %>" width="120" height="90"
+                                        style="border: 1px solid #000; display: block;">
+                                </div>
+                                <% } %>
+                                    <div>
+                                        <div class="result-title">
+                                            <%= video.title %>
+                                        </div>
+                                        <div class="result-meta">
+                                            <%= video.author %> <br>
+                                                <% if (video.duration) { %>
+                                                    <%= video.duration %> · <% } %>
+                                                            Watched: <%= new Date(video.watchedAt).toLocaleDateString()
+                                                                %>
+                                        </div>
+                                    </div>
+                        </a>
+                    </div>
+                    <% }) %>
+            </div>
+            <% } %>
+
+                <%- include('footer') %>

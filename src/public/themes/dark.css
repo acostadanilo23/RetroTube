@@ -1,0 +1,74 @@
+/* Dark theme */
+:root {
+    --bg: #1a1a2e;
+    --bg-alt: #16213e;
+    --text: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --border: #333;
+    --link: #64b5f6;
+    --header-bg: #0f3460;
+    --header-text: #e0e0e0;
+}
+
+body {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+}
+
+header {
+    background: var(--header-bg) !important;
+    border-bottom-color: var(--border) !important;
+}
+
+header h1 a {
+    color: var(--header-text) !important;
+}
+
+header small {
+    color: var(--text-muted) !important;
+}
+
+header nav a {
+    color: var(--link) !important;
+}
+
+a {
+    color: var(--link);
+}
+
+main {
+    background: var(--bg) !important;
+}
+
+.result-item,
+.subscription-item {
+    border-bottom-color: var(--border) !important;
+}
+
+.result-title {
+    color: var(--text) !important;
+}
+
+.result-meta {
+    color: var(--text-muted) !important;
+}
+
+input[type="text"] {
+    background: var(--bg-alt) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+button {
+    background: var(--header-bg) !important;
+    color: var(--header-text) !important;
+    border-color: var(--border) !important;
+}
+
+.video-description {
+    color: var(--text) !important;
+}
+
+hr {
+    border-color: var(--border) !important;
+}

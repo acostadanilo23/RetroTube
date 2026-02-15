@@ -1,0 +1,132 @@
+/* RetroTube - Simple & Light */
+
+:root {
+    --bg-color: #e0e0e0;
+    --text-color: #000;
+    --link-color: #0000ee;
+    --visited-color: #551a8b;
+    --header-bg: #cccccc;
+    --border-color: #999;
+}
+
+body {
+    font-family: "Times New Roman", Times, serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 10px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+header {
+    background-color: var(--header-bg);
+    border: 2px solid var(--border-color);
+    padding: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2em;
+}
+
+a {
+    color: var(--link-color);
+}
+
+a:visited {
+    color: var(--visited-color);
+}
+
+.search-box {
+    text-align: center;
+    margin: 20px 0;
+}
+
+input[type="text"] {
+    font-size: 1.2em;
+    padding: 5px;
+    width: 60%;
+}
+
+button {
+    font-size: 1.2em;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+/* Search Results */
+.result-item {
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 0;
+    display: flex;
+    gap: 15px;
+}
+
+.subscription-item {
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 0;
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.subscription-item img {
+    width: 120px;
+    height: auto;
+    border: 1px solid #000;
+}
+
+.result-item img {
+    width: 120px;
+    height: auto;
+    border: 1px solid #000;
+}
+
+.result-info h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.1em;
+}
+
+.result-meta {
+    font-size: 0.9em;
+    color: #444;
+}
+
+/* Watch Page */
+.video-player {
+    background: #000;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+video {
+    max-width: 100%;
+    height: auto;
+}
+
+.video-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.video-desc {
+    background: #f0f0f0;
+    border: 1px inset var(--border-color);
+    padding: 10px;
+    font-family: monospace;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+.error-box {
+    border: 2px solid red;
+    background: #ffcccc;
+    padding: 10px;
+    color: darkred;
+    font-weight: bold;
+}

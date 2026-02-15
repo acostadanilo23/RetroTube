@@ -1,0 +1,135 @@
+<%- include('header') %>
+
+    <div class="search-box">
+        <form action="/search" method="GET" style="display: flex; gap: 10px;">
+            <input type="text" name="q" placeholder="Search RetroTube..." value="<%= query %>" style="flex: 1;"
+                required>
+            <input type="hidden" name="type" value="<%= typeof type !== 'undefined' ? type : 'video' %>">
+            <% if (mode==='text' ) { %><input type="hidden" name="mode" value="text">
+                <% } %>
+                    <button type="submit">Search</button>
+        </form>
+        <div style="margin-top: 10px; font-size: 0.9em;">
+            Type:
+            <a href="/search?q=<%= encodeURIComponent(query) %>&type=video"
+                style="<%= (typeof type === 'undefined' || type === 'video') ? 'font-weight: bold;' : '' %>">Videos</a>
+            |
+            <a href="/search?q=<%= encodeURIComponent(query) %>&type=playlist"
+                style="<%= type === 'playlist' ? 'font-weight: bold;' : '' %>">Playlists</a>
+
+            <span style="margin-left: 20px;">Filters:</span>
+            <a
+                href="/search?q=<%= encodeURIComponent(query) %>&type=<%= typeof type !== 'undefined' ? type : 'video' %>">Any
+                Time</a> |
+            <a
+                href="/search?q=<%= encodeURIComponent(query) %>&type=<%= typeof type !== 'undefined' ? type : 'video' %>&sp=EgQIAhAB">Today</a>
+            |
+            <a
+                href="/search?q=<%= encodeURIComponent(query) %>&type=<%= typeof type !== 'undefined' ? type : 'video' %>&sp=EgQIAxAB">This
+                Week</a>
+        </div>
+    </div>
+
+    <h2>Results for "<%= query %>" <small>(<%= totalResults %> found, Page <%= page %>)</small></h2>
+
+    <% if (detectedChannel) { %>
+        <div
+            style="padding: 10px; margin-bottom: 15px; border: 2px solid var(--border, #999); background: var(--bg-alt, #eee);">
+            <b>Channel:</b>
+            <a
+                href="/channel?name=<%= encodeURIComponent(detectedChannel) %><%= detectedChannelId ? '&id=' + detectedChannelId : '' %>">
+                <%= detectedChannel %>
+            </a>
+            — <a
+                href="/channel?name=<%= encodeURIComponent(detectedChannel) %><%= detectedChannelId ? '&id=' + detectedChannelId : '' %>">View
+                all videos &raquo;</a>
+        </div>
+        <% } %>
+
+            <% if (locals.error) { %>
+                <div class="error-box">
+                    <%= error %>
+                </div>
+                <% } else if (results.length===0) { %>
+                    <p>No results found.</p>
+                    <% } else { %>
+                        <div class="results">
+                            <% results.forEach(item=> { %>
+                                <div class="result-item">
+                                    <% if (item.type==='playlist' ) { %>
+                                        <!-- Playlist Result -->
+                                        <a href="/playlist?list=<%= item.id %>"
+                                            style="text-decoration: none; color: inherit; display: flex; gap: 10px;">
+                                            <div style="flex-shrink: 0; position: relative;">
+                                                <img loading="lazy"
+                                                    src="/proxy-image?url=<%= encodeURIComponent(item.thumbnail) %>"
+                                                    alt="<%= item.title %>" width="120" height="90"
+                                                    style="border: 1px solid #000; display: block; object-fit: cover;">
+                                                <div
+                                                    style="position: absolute; right: 0; top: 0; bottom: 0; width: 40px; background: rgba(0,0,0,0.6); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2em;">
+                                                    ≡</div>
+                                            </div>
+                                            <div>
+                                                <div class="result-title">
+                                                    <%= item.title %>
+                                                </div>
+                                                <div class="result-meta">
+                                                    Playlist • <%= item.author %> • <%= item.videoCount %> videos
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <% } else { %>
+                                            <!-- Video Result -->
+                                            <a href="/watch?v=<%= item.id %><%= mode === 'text' ? '&mode=text' : '' %>"
+                                                style="text-decoration: none; color: inherit; display: flex; gap: 10px;">
+                                                <% if (mode !=='text' ) { %>
+                                                    <div style="flex-shrink: 0;">
+                                                        <img loading="lazy"
+                                                            src="/proxy-image?url=<%= encodeURIComponent(item.thumbnail) %>"
+                                                            alt="<%= item.title %>" width="120" height="90"
+                                                            style="border: 1px solid #000; display: block;">
+                                                    </div>
+                                                    <% } %>
+                                                        <div>
+                                                            <div class="result-title">
+                                                                <%= item.title %>
+                                                            </div>
+                                                            <div class="result-meta">
+                                                                <a href="/channel?name=<%= encodeURIComponent(item.author) %>&id=<%= item.channelId %>"
+                                                                    style="color: inherit;">
+                                                                    <%= item.author %>
+                                                                </a> <br>
+                                                                <% if (item.publishedText) { %>
+                                                                    <%= item.publishedText %>
+                                                                        <% } %>
+                                                                            <% if (item.duration) { %> · <%=
+                                                                                    item.duration %>
+                                                                                    <% } %>
+                                                                                        <% if (item.views) { %> · <%=
+                                                                                                item.views %>
+                                                                                                <% } %>
+                                                            </div>
+                                                        </div>
+                                            </a>
+                                            <% } %>
+                                </div>
+                                <% }) %>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div style="margin: 20px 0; text-align: center;">
+                            <% if (page> 1) { %>
+                                <a
+                                    href="/search?q=<%= encodeURIComponent(query) %>&page=<%= page - 1 %><%= mode === 'text' ? '&mode=text' : '' %>">&laquo;
+                                    Previous</a>
+                                <% } %>
+                                    <span style="margin: 0 15px;">Page <%= page %></span>
+                                    <% if (hasMore) { %>
+                                        <a
+                                            href="/search?q=<%= encodeURIComponent(query) %>&page=<%= page + 1 %><%= mode === 'text' ? '&mode=text' : '' %>">Next
+                                            &raquo;</a>
+                                        <% } %>
+                        </div>
+                        <% } %>
+
+                            <%- include('footer') %>

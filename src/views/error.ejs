@@ -1,0 +1,25 @@
+<%- include('header') %>
+
+    <div style="text-align: center; padding: 50px 20px;">
+        <h1 style="color: #d32f2f;">⚠️ Error <%= error.status || 500 %>
+        </h1>
+        <p style="font-size: 1.2em; font-weight: bold;">
+            <%= message %>
+        </p>
+
+        <% if (error.stack && process.env.NODE_ENV !=='production' ) { %>
+            <div
+                style="text-align: left; background: #eee; padding: 10px; border: 1px solid #999; overflow-x: auto; margin-top: 20px;">
+                <pre><%= error.stack %></pre>
+            </div>
+            <% } %>
+
+                <div style="margin-top: 30px;">
+                    <a href="/"
+                        style="padding: 10px 20px; background: #ddd; border: 1px solid #999; text-decoration: none; color: black;">
+                        &laquo; Return Home
+                    </a>
+                </div>
+    </div>
+
+    <%- include('footer') %>

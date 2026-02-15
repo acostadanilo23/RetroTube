@@ -1,0 +1,81 @@
+/* Terminal (green-on-black) theme */
+:root {
+    --bg: #0a0a0a;
+    --bg-alt: #111;
+    --text: #33ff33;
+    --text-muted: #22aa22;
+    --border: #1a5a1a;
+    --link: #55ff55;
+    --header-bg: #050505;
+    --header-text: #33ff33;
+}
+
+body {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    font-family: "Courier New", Courier, monospace !important;
+}
+
+header {
+    background: var(--header-bg) !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+header h1 a {
+    color: var(--header-text) !important;
+}
+
+header small {
+    color: var(--text-muted) !important;
+}
+
+header nav a {
+    color: var(--link) !important;
+}
+
+a {
+    color: var(--link);
+}
+
+main {
+    background: var(--bg) !important;
+}
+
+.result-item,
+.subscription-item {
+    border-bottom: 1px dashed var(--border) !important;
+}
+
+.result-title {
+    color: var(--text) !important;
+}
+
+.result-meta {
+    color: var(--text-muted) !important;
+}
+
+input[type="text"] {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    font-family: "Courier New", Courier, monospace !important;
+}
+
+button {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    font-family: "Courier New", Courier, monospace !important;
+}
+
+.video-description {
+    color: var(--text) !important;
+}
+
+hr {
+    border-color: var(--border) !important;
+}
+
+img {
+    filter: grayscale(100%) brightness(0.8) !important;
+}

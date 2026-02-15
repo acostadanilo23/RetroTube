@@ -1,0 +1,53 @@
+<%- include('header') %>
+
+    <% if (playlist) { %>
+        <div
+            style="background: var(--bg-alt, #eee); padding: 20px; border-bottom: 1px solid var(--border, #999); display: flex; align-items: center; gap: 20px;">
+            <div style="flex: 1;">
+                <p style="margin: 0; text-transform: uppercase; font-size: 0.8em; color: #666;">Playlist</p>
+                <h2 style="margin: 5px 0;">
+                    <%= playlist.title %>
+                </h2>
+                <p style="margin: 0;">
+                    <%= playlist.author %> • <%= playlist.videos.length %> videos
+                </p>
+
+                <% if (playlist.videos.length> 0) { %>
+                    <br>
+                    <a href="/watch?v=<%= playlist.videos[0].id %>&list=<%= playlist.id %>" class="button"
+                        style="background: #ff6600; color: white; border-color: #cc5200;">▶ Play All</a>
+                    <% } %>
+            </div>
+        </div>
+
+        <div class="results" style="margin-top: 20px;">
+            <% playlist.videos.forEach(function(video, index) { %>
+                <div class="result-item"
+                    style="display: flex; gap: 10px; padding: 10px; border-bottom: 1px solid var(--border, #eee);">
+                    <div style="color: #666; width: 20px; text-align: right; flex-shrink: 0;">
+                        <%= index + 1 %>
+                    </div>
+                    <a href="/watch?v=<%= video.id %>&list=<%= playlist.id %>"
+                        style="display: flex; gap: 10px; flex: 1; text-decoration: none; color: inherit;">
+                        <div style="flex-shrink: 0;">
+                            <img loading="lazy" src="/proxy-image?url=<%= encodeURIComponent(video.thumbnail) %>"
+                                alt="<%= video.title %>" width="120" height="90"
+                                style="object-fit: cover; border: 1px solid #000;">
+                        </div>
+                        <div>
+                            <div class="result-title">
+                                <%= video.title %>
+                            </div>
+                            <div class="result-meta">
+                                <%= video.author %> • <%= video.duration %>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <% }) %>
+        </div>
+        <% } else { %>
+            <p>Playlist not found.</p>
+            <% } %>
+
+                <%- include('footer') %>

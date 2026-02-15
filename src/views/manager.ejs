@@ -1,0 +1,37 @@
+<%- include('header') %>
+
+    <h2>Subscription Manager</h2>
+
+    <div
+        style="background: var(--bg-alt, #eee); padding: 15px; border: 1px solid var(--border, #999); margin-bottom: 20px;">
+        <h3>Import Subscriptions</h3>
+        <p>Paste your subscription data here. We support:</p>
+        <ul>
+            <li><strong>YouTube URLs:</strong> <code>https://youtube.com/@ChannelName</code> (one per line)</li>
+            <li><strong>Google Takeout CSV:</strong> Open your <code>subscriptions.csv</code>, copy all text, and paste
+                it here.</li>
+            <li><strong>RetroTube JSON:</strong> Paste the content of your exported <code>subscriptions.json</code>.
+            </li>
+        </ul>
+
+        <form action="/subscriptions/import" method="POST">
+            <textarea name="data" rows="10"
+                style="width: 100%; box-sizing: border-box; padding: 10px; font-family: monospace;"
+                placeholder="Channel Id,Channel Url,Channel Title&#10;UC...,http://...,Name"></textarea>
+            <br><br>
+            <button type="submit">Import Subscriptions</button>
+        </form>
+    </div>
+
+    <div style="background: var(--bg-alt, #eee); padding: 15px; border: 1px solid var(--border, #999);">
+        <h3>Export Subscriptions</h3>
+        <p>Download your current subscription list to backup or move to another RetroTube instance.</p>
+
+        <form action="/subscriptions/export" method="POST" target="_blank">
+            <button type="submit">Download subscriptions.json</button>
+        </form>
+    </div>
+
+    <p><a href="/subscriptions">← Back to Subscriptions</a></p>
+
+    <%- include('footer') %>

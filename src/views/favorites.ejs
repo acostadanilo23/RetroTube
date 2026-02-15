@@ -1,0 +1,40 @@
+<%- include('header') %>
+
+    <h2>Favorites</h2>
+
+    <% if (favorites.length===0) { %>
+        <p>No favorites yet. Watch a video and click ⭐ to save it!</p>
+        <% } else { %>
+            <div class="results">
+                <% favorites.forEach(video=> { %>
+                    <div class="result-item" style="display: flex; align-items: center; gap: 10px;">
+                        <a href="/watch?v=<%= video.id %>"
+                            style="text-decoration: none; color: inherit; display: flex; gap: 10px; flex: 1;">
+                            <% if (mode !=='text' ) { %>
+                                <div style="flex-shrink: 0;">
+                                    <img src="/proxy-image?url=<%= encodeURIComponent(video.thumbnail) %>"
+                                        alt="<%= video.title %>" width="120" height="90"
+                                        style="border: 1px solid #000; display: block;">
+                                </div>
+                                <% } %>
+                                    <div>
+                                        <div class="result-title">
+                                            <%= video.title %>
+                                        </div>
+                                        <div class="result-meta">
+                                            <%= video.author %>
+                                                <% if (video.duration) { %> · <%= video.duration %>
+                                                        <% } %>
+                                        </div>
+                                    </div>
+                        </a>
+                        <form action="/favorites/remove" method="POST" style="flex-shrink: 0;">
+                            <input type="hidden" name="id" value="<%= video.id %>">
+                            <button type="submit" title="Remove from favorites">✕</button>
+                        </form>
+                    </div>
+                    <% }) %>
+            </div>
+            <% } %>
+
+                <%- include('footer') %>

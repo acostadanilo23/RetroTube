@@ -1,0 +1,44 @@
+<%- include('header') %>
+
+    <div class="search-box" style="margin-top: 50px;">
+        <form action="/search" method="GET">
+            <label for="q" style="display: block; margin-bottom: 10px; font-size: 1.2em;">Search YouTube:</label>
+            <input type="text" id="q" name="q" placeholder="What are you looking for?" required autofocus>
+            <button type="submit">Search</button>
+        </form>
+        <p style="margin-top: 20px;">
+            <i>Tip: Keep it simple.</i>
+        </p>
+    </div>
+
+    <% if (trending && trending.length> 0) { %>
+        <hr>
+        <h2>Popular Right Now</h2>
+        <div class="results">
+            <% trending.forEach(video=> { %>
+                <div class="result-item">
+                    <a href="/watch?v=<%= video.id %><%= mode === 'text' ? '&mode=text' : '' %>"
+                        style="text-decoration: none; color: black; display: flex; gap: 10px;">
+                        <% if (mode !=='text' ) { %>
+                            <div style="flex-shrink: 0;">
+                                <img loading="lazy" src="/proxy-image?url=<%= encodeURIComponent(video.thumbnail) %>"
+                                    alt="<%= video.title %>" width="120" height="90"
+                                    style="border: 1px solid #000; display: block;">
+                            </div>
+                            <% } %>
+                                <div>
+                                    <div class="result-title">
+                                        <%= video.title %>
+                                    </div>
+                                    <div class="result-meta">
+                                        <%= video.author %> <br>
+                                            <%= video.publishedText %>
+                                    </div>
+                                </div>
+                    </a>
+                </div>
+                <% }) %>
+        </div>
+        <% } %>
+
+            <%- include('footer') %>

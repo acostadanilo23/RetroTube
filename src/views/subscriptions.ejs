@@ -1,0 +1,83 @@
+<%- include('header') %>
+
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Subscriptions</h2>
+        <a href="/subscriptions/manager" class="button">Manage (Import/Export)</a>
+    </div>
+
+    <% if (typeof query !=='undefined' && query.msg) { %>
+        <div
+            style="background: #d4edda; color: #155724; padding: 10px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+            <%= query.msg.replace(/\+/g, ' ' ) %>
+        </div>
+        <% } %>
+
+            <% if (channels.length===0) { %>
+                <p>No subscriptions yet. Visit a channel page and click Subscribe to add channels!</p>
+                <% } else { %>
+
+                    <!-- Channel List -->
+                    <div style="margin-bottom: 20px;">
+                        <% channels.forEach(function(ch) { %>
+                            <div
+                                style="display: flex; align-items: center; gap: 10px; padding: 8px; margin-bottom: 6px; border: 1px solid var(--border, #999); background: var(--bg-alt, #eee);">
+                                <% if (ch.avatar) { %>
+                                    <img src="/proxy-image?url=<%= encodeURIComponent(ch.avatar) %>"
+                                        alt="<%= ch.name %>" width="40" height="40"
+                                        style="border-radius: 50%; border: 1px solid var(--border, #999);">
+                                    <% } %>
+                                        <a href="/channel?name=<%= encodeURIComponent(ch.name) %>&id=<%= ch.id || '' %>"
+                                            style="flex: 1;">
+                                            <%= ch.name %>
+                                        </a>
+                                        <form action="/subscriptions/remove" method="POST" style="margin: 0;">
+                                            <input type="hidden" name="name" value="<%= ch.name %>">
+                                            <button type="submit" title="Unsubscribe">✕</button>
+                                        </form>
+                            </div>
+                            <% }) %>
+                    </div>
+
+                    <!-- Feed: Recent videos from all channels -->
+                    <% if (feed.length> 0) { %>
+                        <h3>Recent Videos</h3>
+                        <div class="results">
+                            <% feed.forEach(function(video) { %>
+                                <div class="subscription-item">
+                                    <% if (typeof mode==='undefined' || mode !=='text' ) { %>
+                                        <div style="flex-shrink: 0; width: 120px;">
+                                            <a href="/watch?v=<%= video.id %>" style="display: block;">
+                                                <img loading="lazy"
+                                                    src="/proxy-image?url=<%= encodeURIComponent(video.thumbnail) %>"
+                                                    alt="<%= video.title %>" width="120" height="90"
+                                                    style="border: 1px solid #000; width: 100%; display: block;">
+                                            </a>
+                                        </div>
+                                        <% } %>
+                                            <div style="flex-grow: 1; min-width: 0; text-align: left;">
+                                                <div class="result-title" style="margin-bottom: 5px;">
+                                                    <a href="/watch?v=<%= video.id %>"
+                                                        style="text-decoration: none; color: inherit;">
+                                                        <%= video.title %>
+                                                    </a>
+                                                </div>
+                                                <div class="result-meta">
+                                                    <a
+                                                        href="/channel?name=<%= encodeURIComponent(video.author) %>&id=<%= video.channelId || '' %>">
+                                                        <%= video.author %>
+                                                    </a>
+                                                    <% if (video.publishedText) { %> · <%= video.publishedText %>
+                                                            <% } %>
+                                                                <% if (video.duration) { %> · <%= video.duration %>
+                                                                        <% } %>
+                                                </div>
+                                            </div>
+                                </div>
+                                <% }) %>
+                        </div>
+                        <% } else { %>
+                            <p>Loading feed... videos will appear here from your subscribed channels.</p>
+                            <% } %>
+                                <% } %>
+
+                                    <%- include('footer') %>

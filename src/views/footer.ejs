@@ -1,0 +1,32 @@
+</main>
+
+<footer style="margin-top: 30px; text-align: center; font-size: 0.8em; border-top: 1px solid #999; padding-top: 10px;">
+    <p>RetroTube &copy; 2026</p>
+    <p>
+        <% if (typeof mode !=='undefined' && mode==='text' ) { %>
+            <a href="/?mode=normal">🖼 Normal Mode</a>
+            <% } else if (typeof mode !=='undefined' && mode==='audio' ) { %>
+                <a href="/?mode=normal">🖼 Normal Mode</a>
+                <% } else { %>
+                    <a href="/?mode=text">Text Only</a> |
+                    <a href="/?mode=audio">Audio Only</a>
+                    <% } %>
+                        ·
+                        <% if (typeof theme==='undefined' || theme==='default' ) { %>
+                            <a href="/?theme=dark">Dark</a> |
+                            <a href="/?theme=terminal">Terminal</a>
+                            <% } else { %>
+                                <a href="/?theme=default">Light</a>
+                                <% } %>
+    </p>
+    <p
+        style="margin-top: 15px; color: #777; font-size: 0.75em; max-width: 600px; margin-left: auto; margin-right: auto;">
+        RetroTube is an independent, open-source hobby project.<br>
+        It is not affiliated with, endorsed by, or associated with YouTube or Google.<br>
+        RetroTube does not host, upload, or modify any video content. All video content is delivered directly from
+        YouTube’s official player.
+    </p>
+</footer>
+</body>
+
+</html>

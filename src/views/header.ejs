@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetroTube</title>
+    <link rel="stylesheet" href="/style.css?v=<%= Date.now() %>">
+    <link rel="icon" type="image/png" href="/icon-192.png">
+    <% if (typeof theme !=='undefined' && theme==='dark' ) { %>
+        <link rel="stylesheet" href="/themes/dark.css">
+        <% } else if (typeof theme !=='undefined' && theme==='terminal' ) { %>
+            <link rel="stylesheet" href="/themes/terminal.css">
+            <% } %>
+                <link rel="manifest" href="/manifest.json">
+                <meta name="theme-color" content="#d32f2f">
+                <script>
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.register('/sw.js')
+                            .then(() => console.log('PWA Service Worker Registered'))
+                            .catch(err => console.error('PWA SW Registration Failed', err));
+                    }
+                </script>
+</head>
+
+<body>
+    <header>
+        <h1><a href="/" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+                <img src="/icon-192.png" alt="Logo" style="height: 40px; margin-right: 10px; border-radius: 5px;">
+                RetroTube
+            </a></h1>
+        <small>Simple. Light. Functional.</small>
+        <nav>
+            <a href="/">Home</a> |
+            <a href="/history">History</a> |
+            <a href="/favorites">Favorites</a> |
+            <a href="/subscriptions">Subscriptions</a>
+        </nav>
+    </header>
+
+    <main>

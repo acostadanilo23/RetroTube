@@ -1,0 +1,116 @@
+<%- include('header') %>
+
+    <div style="margin-bottom: 15px;">
+        <a href="javascript:history.back()">&laquo; Back to Results</a>
+    </div>
+
+    <div class="video-title">
+        <%= video.title %>
+    </div>
+
+    <% if (mode==='text' ) { %>
+        <!-- Text Mode: no video player, just a direct link -->
+        <div
+            style="padding: 15px; background: var(--bg-alt, #f0f0f0); border: 1px solid var(--border, #999); margin-bottom: 15px; text-align: center;">
+            <p><b>Text Mode Active</b> — No media loaded.</p>
+            <p><a href="https://www.youtube.com/watch?v=<%= video.id %>" target="_blank">Open on YouTube &raquo;</a></p>
+        </div>
+        <% } else if (mode==='audio' ) { %>
+            <!-- Audio Mode: embed with minimal UI -->
+            <div
+                style="padding: 15px; background: var(--bg-alt, #f0f0f0); border: 1px solid var(--border, #999); margin-bottom: 15px; text-align: center;">
+                <p>🎵 <b>Audio Mode</b> — Listening only</p>
+                <iframe width="100%" height="80" src="<%= video.embedUrl %>?autoplay=1" title="Audio player"
+                    frameborder="0" allow="autoplay; encrypted-media"
+                    style="border: 1px solid var(--border, #999);"></iframe>
+            </div>
+            <% } else { %>
+                <!-- Lite YouTube Embed -->
+                <link rel="stylesheet" href="/css/lite-yt-embed.css">
+                <script src="/js/lite-yt-embed.js" defer></script>
+                <link rel="preconnect" href="https://www.youtube-nocookie.com">
+
+                <!-- 
+                     enablejsapi=1 is automatically added by the lite-youtube component.
+                -->
+                <lite-youtube videoid="<%= video.id %>"
+                    style="background-image: url('/proxy-image?url=<%= encodeURIComponent(video.thumbnail) %>');"
+                    params="rel=0&vq=hd720" playlabel="Play: <%= video.title %>">
+                </lite-youtube>
+
+
+                <% } %>
+
+                    <div class="result-meta"
+                        style="margin-bottom: 10px; padding: 10px; background: var(--bg-alt, #eee); border: 1px solid var(--border, #999);">
+                        <b>Author:</b> <a
+                            href="/channel?name=<%= encodeURIComponent(video.author) %>&id=<%= video.channelId %>">
+                            <%= video.author %>
+                        </a> <br>
+                        <b>Views:</b>
+                        <%= (video.viewCount || 0).toLocaleString() %> <br>
+                            <b>Published:</b>
+                            <%= video.uploadedAt || 'Unknown' %> <br>
+                                <b>Duration:</b>
+                                <%= video.duration || 'Unknown' %> <br>
+
+                                    <div style="margin-top: 5px; font-size: 0.9em;">
+                                        <b>Likes:</b>
+                                        <%= (video.likes !==null && video.likes !==undefined) ?
+                                            video.likes.toLocaleString() : 'Hidden' %> |
+                                            <b>Dislikes:</b>
+                                            <%= (video.dislikes !==null && video.dislikes !==undefined) ?
+                                                video.dislikes.toLocaleString() : 'Hidden' %>
+                                    </div>
+
+                                    <!-- Favorite toggle -->
+                                    <div style="margin-top: 8px;">
+                                        <% if (isFavorite) { %>
+                                            <form action="/favorites/remove" method="POST" style="display: inline;">
+                                                <input type="hidden" name="id" value="<%= video.id %>">
+                                                <input type="hidden" name="returnTo" value="/watch?v=<%= video.id %>">
+                                                <button type="submit" title="Remove from favorites">⭐
+                                                    Favorited</button>
+                                            </form>
+                                            <% } else { %>
+                                                <form action="/favorites/add" method="POST" style="display: inline;">
+                                                    <input type="hidden" name="id" value="<%= video.id %>">
+                                                    <input type="hidden" name="title" value="<%= video.title %>">
+                                                    <input type="hidden" name="thumbnail"
+                                                        value="<%= video.thumbnail %>">
+                                                    <input type="hidden" name="author" value="<%= video.author %>">
+                                                    <input type="hidden" name="duration" value="<%= video.duration %>">
+                                                    <button type="submit" title="Add to favorites">☆ Add to
+                                                        Favorites</button>
+                                                </form>
+                                                <% } %>
+                                    </div>
+                    </div>
+
+                    <div class="video-description">
+                        <h3>Description</h3>
+                        <p><%- video.description %></p>
+                    </div>
+
+                    <!-- Comments -->
+                    <% if (comments && comments.length> 0) { %>
+                        <div style="margin-top: 20px; border-top: 1px solid var(--border, #999); padding-top: 15px;">
+                            <h3>Comments (<%= comments.length %>)</h3>
+                            <% comments.forEach(function(comment) { %>
+                                <div
+                                    style="margin-bottom: 12px; padding: 8px 10px; border: 1px solid <%= comment.isPinned ? 'var(--accent, #0f0)' : 'var(--border, #666)' %>; background: var(--bg-alt, #eee);">
+                                    <% if (comment.isPinned) { %>
+                                        <span style="font-size: 0.8em; opacity: 0.8;">📌 Pinned</span><br>
+                                        <% } %>
+                                            <b>
+                                                <%= comment.author %>
+                                            </b>
+                                            <div style="margin-top: 4px;">
+                                                <%= comment.text %>
+                                            </div>
+                                </div>
+                                <% }) %>
+                        </div>
+                        <% } %>
+
+                            <%- include('footer') %>
