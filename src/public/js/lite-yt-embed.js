@@ -49,8 +49,8 @@ class LiteYTEmbed extends HTMLElement {
         iframe.width = 560;
         iframe.height = 315;
         iframe.title = this.playLabel;
-        iframe.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture';
-        iframe.allowFullscreen = true;
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.setAttribute('allowfullscreen', '');
         iframe.src = `https://www.youtube-nocookie.com/embed/${this.videoId}?${params.toString()}`;
 
         this.append(iframe);

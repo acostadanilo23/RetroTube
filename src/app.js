@@ -46,8 +46,55 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Cookie parser for theme persistence
+// Cookie parser for theme persistence and auth
 app.use(cookieParser());
+
+// Database and Auth Middleware
+const db = require('./database');
+const { randomUUID } = require('crypto');
+
+app.use((req, res, next) => {
+    let userId = req.query.restore || req.cookies.userId;
+
+    // Handle restoration from URL
+    if (req.query.restore) {
+        res.cookie('userId', userId, {
+            maxAge: 365 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            sameSite: 'lax'
+        });
+    }
+
+    // Generate new ID if missing
+    if (!userId) {
+        userId = randomUUID();
+        res.cookie('userId', userId, {
+            maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+            httpOnly: true,
+            sameSite: 'lax'
+        });
+
+        // Create user in DB
+        try {
+            const insertUser = db.prepare('INSERT OR IGNORE INTO users (id) VALUES (?)');
+            insertUser.run(userId);
+        } catch (err) {
+            console.error('Failed to create user:', err);
+        }
+    } else {
+        // Ensure user exists (in case DB was wiped but cookie remains)
+        try {
+            const insertUser = db.prepare('INSERT OR IGNORE INTO users (id) VALUES (?)');
+            insertUser.run(userId);
+        } catch (err) {
+            console.error('Failed to ensure user exists:', err);
+        }
+    }
+
+    req.userId = userId;
+    res.locals.userId = userId;
+    next();
+});
 
 // Inject mode, theme, and currentUrl into all views
 app.use((req, res, next) => {

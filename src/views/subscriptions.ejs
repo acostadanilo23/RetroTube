@@ -80,4 +80,76 @@
                             <% } %>
                                 <% } %>
 
+                                    <!-- Backup Disclaimer Modal -->
+                                    <div id="backup-modal"
+                                        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+                                        <div
+                                            style="background: var(--bg, #fff); color: var(--text, #000); padding: 30px; border: 4px double var(--border, #000); max-width: 500px; width: 90%; text-align: left; box-shadow: 10px 10px 0 rgba(0,0,0,0.5);">
+                                            <h2
+                                                style="margin-top: 0; border-bottom: 2px solid var(--border, #000); padding-bottom: 10px;">
+                                                ⚠️ Important: Your Data & Privacy</h2>
+
+                                            <p>RetroTube is designed for <strong>maximum privacy</strong>. We do not use
+                                                accounts, passwords, or emails.</p>
+
+                                            <p><strong>How your data works:</strong></p>
+                                            <ul>
+                                                <li>Your History, Favorites, and Subscriptions are linked
+                                                    <strong>only</strong> to your unique User ID.
+                                                </li>
+                                                <li>If you clear your browser cookies or use a different device, your
+                                                    data will <strong>vanish</strong>.</li>
+                                                <li>To keep your data, you <strong>must</strong> backup your User ID or
+                                                    use the Bookmark Link in the Manager.</li>
+                                            </ul>
+
+                                            <p><strong>How to delete your data:</strong></p>
+                                            <ul>
+                                                <li>Simply clear your browser cookies or use the "Clear History" button
+                                                    to remove your footprint.</li>
+                                            </ul>
+
+                                            <div style="margin-top: 25px; text-align: center;">
+                                                <button id="close-modal-btn" disabled
+                                                    style="padding: 10px 20px; font-weight: bold; cursor: not-allowed; opacity: 0.6;">
+                                                    I Understand (<span id="modal-timer">5</span>s)
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <script>
+                                        (function () {
+                                            const modal = document.getElementById('backup-modal');
+                                            const btn = document.getElementById('close-modal-btn');
+                                            const timerSpan = document.getElementById('modal-timer');
+
+                                            // Only show if not dismissed recently (e.g., within last 30 days)
+                                            const lastShown = localStorage.getItem('disclaimer_dismissed');
+                                            const now = Date.now();
+
+                                            if (!lastShown || (now - lastShown > 30 * 24 * 60 * 60 * 1000)) {
+                                                modal.style.display = 'flex';
+                                                let timeLeft = 5;
+
+                                                const timer = setInterval(() => {
+                                                    timeLeft--;
+                                                    timerSpan.innerText = timeLeft;
+                                                    if (timeLeft <= 0) {
+                                                        clearInterval(timer);
+                                                        btn.disabled = false;
+                                                        btn.style.cursor = 'pointer';
+                                                        btn.style.opacity = '1';
+                                                        btn.innerText = 'I Understand';
+                                                    }
+                                                }, 1000);
+
+                                                btn.onclick = () => {
+                                                    localStorage.setItem('disclaimer_dismissed', Date.now());
+                                                    modal.style.display = 'none';
+                                                };
+                                            }
+                                        })();
+                                    </script>
+
                                     <%- include('footer') %>

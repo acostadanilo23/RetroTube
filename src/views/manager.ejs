@@ -2,35 +2,125 @@
 
     <h2>Subscription Manager</h2>
 
+
+
     <div
-        style="background: var(--bg-alt, #eee); padding: 15px; border: 1px solid var(--border, #999); margin-bottom: 20px;">
-        <h3>Import Subscriptions</h3>
-        <p>Paste your subscription data here. We support:</p>
-        <ul>
-            <li><strong>YouTube URLs:</strong> <code>https://youtube.com/@ChannelName</code> (one per line)</li>
-            <li><strong>Google Takeout CSV:</strong> Open your <code>subscriptions.csv</code>, copy all text, and paste
-                it here.</li>
-            <li><strong>RetroTube JSON:</strong> Paste the content of your exported <code>subscriptions.json</code>.
-            </li>
-        </ul>
+        style="background: var(--bg-alt, #eee); padding: 15px; border: 1px solid var(--border, #999); margin-top: 20px;">
+        <h3>Backup & Restore Identity</h3>
+        <p>Your <strong>User ID</strong> is the key to your history and favorites. Bookmark the link or download your
+            key file.</p>
 
-        <form action="/subscriptions/import" method="POST">
-            <textarea name="data" rows="10"
-                style="width: 100%; box-sizing: border-box; padding: 10px; font-family: monospace;"
-                placeholder="Channel Id,Channel Url,Channel Title&#10;UC...,http://...,Name"></textarea>
-            <br><br>
-            <button type="submit">Import Subscriptions</button>
+        <div style="margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px;">
+            <strong>Your ID:</strong>
+            <code style="background: #fff; padding: 2px 5px; border: 1px solid #ccc;"><%= userId %></code>
+            <button id="copy-id-btn">Copy ID</button>
+            <button id="download-key-btn">Download Key File (.key)</button>
+        </div>
+
+        <div style="margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px;">
+            <strong>Bookmarkable Login Link:</strong><br>
+            <input type="text" id="bookmark-link" readonly style="width: 100%; padding: 5px; margin: 5px 0;">
+            <button id="copy-bookmark-btn">Copy Link</button>
+            <p style="font-size: 0.85em; color: #666; margin-top: 5px;">Save this link to your browser bookmarks to
+                automatically log in on any device.</p>
+        </div>
+
+        <h4>Restore Identity</h4>
+        <p>Paste your ID or upload your <strong>.key</strong> file to restore your data.</p>
+
+        <div style="margin-bottom: 10px;">
+            <label>Upload Key File:</label><br>
+            <input type="file" id="key-file-input" accept=".key,.txt" style="margin-top: 5px;">
+        </div>
+
+        <form action="/auth/restore" method="POST" id="restore-form">
+            <input type="text" name="userId" id="restore-id-input" placeholder="Or paste User ID here..."
+                style="width: 100%; box-sizing: border-box; padding: 8px; margin-bottom: 10px;">
+            <button type="submit">Restore Identity</button>
         </form>
     </div>
 
-    <div style="background: var(--bg-alt, #eee); padding: 15px; border: 1px solid var(--border, #999);">
-        <h3>Export Subscriptions</h3>
-        <p>Download your current subscription list to backup or move to another RetroTube instance.</p>
+    <script>
+        // Set bookmark link on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const bookmarkInput = document.getElementById('bookmark-link');
+            // Check if element exists before accessing it
+            if (bookmarkInput) {
+                const userId = '<%= userId %>';
+                bookmarkInput.value = window.location.origin + '/?restore=' + userId;
+            }
 
-        <form action="/subscriptions/export" method="POST" target="_blank">
-            <button type="submit">Download subscriptions.json</button>
-        </form>
-    </div>
+            // Event Listeners
+            const copyIdBtn = document.getElementById('copy-id-btn');
+            if (copyIdBtn) copyIdBtn.addEventListener('click', copyId);
+
+            const downloadKeyBtn = document.getElementById('download-key-btn');
+            if (downloadKeyBtn) downloadKeyBtn.addEventListener('click', downloadKey);
+
+            const copyBookmarkBtn = document.getElementById('copy-bookmark-btn');
+            if (copyBookmarkBtn) copyBookmarkBtn.addEventListener('click', copyBookmark);
+
+            // Handle File Upload
+            const fileInput = document.getElementById('key-file-input');
+            if (fileInput) {
+                fileInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const id = e.target.result.trim();
+                        if (id) {
+                            document.getElementById('restore-id-input').value = id;
+                            if (confirm('ID loaded from file: ' + id + '\nRestore now?')) {
+                                document.getElementById('restore-form').submit();
+                            }
+                        }
+                    };
+                    reader.readAsText(file);
+                });
+            }
+        });
+
+        function copyId() {
+            const userId = '<%= userId %>';
+            navigator.clipboard.writeText(userId)
+                .then(() => alert('ID Copied!'))
+                .catch(err => console.error('Failed to copy ID:', err));
+        }
+
+        function copyBookmark() {
+            const bookmarkInput = document.getElementById('bookmark-link');
+            if (!bookmarkInput) return;
+
+            bookmarkInput.select();
+            // Modern approach preferred, but fallback to execCommand if needed
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(bookmarkInput.value)
+                    .then(() => alert('Bookmark link copied!'))
+                    .catch(() => {
+                        document.execCommand('copy');
+                        alert('Bookmark link copied!');
+                    });
+            } else {
+                document.execCommand('copy');
+                alert('Bookmark link copied!');
+            }
+        }
+
+        function downloadKey() {
+            const userId = '<%= userId %>';
+            const blob = new Blob([userId], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'retrotube-identity.key';
+            document.body.appendChild(a); // Append to body for Firefox
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
 
     <p><a href="/subscriptions">← Back to Subscriptions</a></p>
 

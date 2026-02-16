@@ -1,61 +1,58 @@
-const fs = require('fs');
-const path = require('path');
+const db = require('../database');
 
-const DATA_DIR = path.join(__dirname, '../../data');
-const HISTORY_FILE = path.join(DATA_DIR, 'history.json');
 const MAX_ENTRIES = 100;
 
-function ensureDataDir() {
-    if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-}
-
-function readHistory() {
-    ensureDataDir();
-    try {
-        if (fs.existsSync(HISTORY_FILE)) {
-            const data = fs.readFileSync(HISTORY_FILE, 'utf8');
-            return JSON.parse(data);
-        }
-    } catch (e) {
-        console.error('[History] Error reading history:', e.message);
-    }
-    return [];
-}
-
-function writeHistory(entries) {
-    ensureDataDir();
-    fs.writeFileSync(HISTORY_FILE, JSON.stringify(entries, null, 2));
-}
-
 const HistoryService = {
-    add(video) {
-        const entries = readHistory();
+    add(userId, video) {
+        if (!userId) return;
+        try {
+            const insert = db.transaction(() => {
+                // 1. Remove existing entry for this video (so we can re-insert at top)
+                db.prepare('DELETE FROM history WHERE user_id = ? AND video_id = ?').run(userId, video.id);
 
-        // Remove duplicate if exists
-        const filtered = entries.filter(e => e.id !== video.id);
+                // 2. Insert new entry
+                db.prepare(`
+                    INSERT INTO history (user_id, video_id, title, thumbnail, author, duration)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                `).run(userId, video.id, video.title, video.thumbnail, video.author, video.duration || '');
 
-        // Add to the beginning (most recent first)
-        filtered.unshift({
-            id: video.id,
-            title: video.title,
-            thumbnail: video.thumbnail,
-            author: video.author,
-            duration: video.duration || '',
-            watchedAt: new Date().toISOString()
-        });
+                // 3. Prune old entries (keep latest 100)
+                // Use a subquery to find the IDs to delete
+                db.prepare(`
+                    DELETE FROM history 
+                    WHERE user_id = ? 
+                    AND video_id NOT IN (
+                        SELECT video_id FROM history 
+                        WHERE user_id = ? 
+                        ORDER BY watched_at DESC 
+                        LIMIT ?
+                    )
+                `).run(userId, userId, MAX_ENTRIES);
+            });
 
-        // Trim to max
-        writeHistory(filtered.slice(0, MAX_ENTRIES));
+            insert();
+        } catch (error) {
+            console.error('[History] Add failed:', error);
+        }
     },
 
-    getAll() {
-        return readHistory();
+    getAll(userId) {
+        if (!userId) return [];
+        try {
+            return db.prepare('SELECT user_id, video_id as id, title, thumbnail, author, duration, watched_at FROM history WHERE user_id = ? ORDER BY watched_at DESC').all(userId);
+        } catch (error) {
+            console.error('[History] Get all failed:', error);
+            return [];
+        }
     },
 
-    clear() {
-        writeHistory([]);
+    clear(userId) {
+        if (!userId) return;
+        try {
+            db.prepare('DELETE FROM history WHERE user_id = ?').run(userId);
+        } catch (error) {
+            console.error('[History] Clear failed:', error);
+        }
     }
 };
 

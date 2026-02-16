@@ -1,72 +1,64 @@
-const fs = require('fs');
-const path = require('path');
-
-const DATA_DIR = path.join(__dirname, '../../data');
-const SUBS_FILE = path.join(DATA_DIR, 'subscriptions.json');
-
-function ensureDataDir() {
-    if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-}
-
-function readSubs() {
-    ensureDataDir();
-    try {
-        if (fs.existsSync(SUBS_FILE)) {
-            const data = fs.readFileSync(SUBS_FILE, 'utf8');
-            return JSON.parse(data);
-        }
-    } catch (e) {
-        console.error('[Subscriptions] Error reading:', e.message);
-    }
-    return [];
-}
-
-function writeSubs(entries) {
-    ensureDataDir();
-    fs.writeFileSync(SUBS_FILE, JSON.stringify(entries, null, 2));
-}
+const db = require('../database');
 
 const SubscriptionsService = {
     /**
      * Subscribe to a channel.
-     * @param {{ name: string, avatar?: string }} channel
+     * @param {string} userId
+     * @param {{ name: string, id: string, avatar?: string }} channel
      */
-    add(channel) {
-        const entries = readSubs();
-        if (entries.some(e => e.name === channel.name)) return;
-
-        entries.push({
-            name: channel.name,
-            id: channel.id || '',
-            avatar: channel.avatar || '',
-            addedAt: new Date().toISOString()
-        });
-
-        writeSubs(entries);
+    add(userId, channel) {
+        if (!userId) return;
+        try {
+            // Uses name as part of PK, ensuring unique subscription per user per channel name
+            const stmt = db.prepare(`
+                INSERT OR IGNORE INTO subscriptions (user_id, channel_id, name, avatar)
+                VALUES (?, ?, ?, ?)
+            `);
+            // channel.id might be empty in some legacy calls, but we try to persist it if available
+            stmt.run(userId, channel.id || '', channel.name, channel.avatar || '');
+        } catch (error) {
+            console.error('[Subscriptions] Add failed:', error);
+        }
     },
 
     /**
      * Unsubscribe from a channel by name.
      */
-    remove(channelName) {
-        const entries = readSubs();
-        writeSubs(entries.filter(e => e.name !== channelName));
+    remove(userId, channelName) {
+        if (!userId) return;
+        try {
+            const stmt = db.prepare('DELETE FROM subscriptions WHERE user_id = ? AND name = ?');
+            stmt.run(userId, channelName);
+        } catch (error) {
+            console.error('[Subscriptions] Remove failed:', error);
+        }
     },
 
     /**
      * Get all subscribed channels.
      */
-    getAll() {
-        return readSubs();
+    getAll(userId) {
+        if (!userId) return [];
+        try {
+            return db.prepare('SELECT user_id, channel_id as id, name, avatar, added_at FROM subscriptions WHERE user_id = ? ORDER BY added_at ASC').all(userId);
+        } catch (error) {
+            console.error('[Subscriptions] Get all failed:', error);
+            return [];
+        }
     },
 
     /**
      * Check if subscribed to a channel.
      */
-    isSubscribed(channelName) {
-        return readSubs().some(e => e.name === channelName);
+    isSubscribed(userId, channelName) {
+        if (!userId) return false;
+        try {
+            const stmt = db.prepare('SELECT 1 FROM subscriptions WHERE user_id = ? AND name = ?');
+            return !!stmt.get(userId, channelName);
+        } catch (error) {
+            console.error('[Subscriptions] Check failed:', error);
+            return false;
+        }
     }
 };
 

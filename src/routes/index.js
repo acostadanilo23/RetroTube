@@ -113,9 +113,9 @@ router.get('/watch', async (req, res, next) => {
 
 
         // Save to watch history
-        HistoryService.add(video);
+        HistoryService.add(req.userId, video);
 
-        const isFavorite = FavoritesService.isFavorite(videoId);
+        const isFavorite = FavoritesService.isFavorite(req.userId, videoId);
         res.render('watch', {
             video,
             isFavorite,
@@ -130,37 +130,37 @@ router.get('/watch', async (req, res, next) => {
 
 // History
 router.get('/history', (req, res) => {
-    const history = HistoryService.getAll();
+    const history = HistoryService.getAll(req.userId);
     res.render('history', { history });
 });
 
 router.post('/history/clear', (req, res) => {
-    HistoryService.clear();
+    HistoryService.clear(req.userId);
     res.redirect('/history');
 });
 
 // Favorites
 router.get('/favorites', (req, res) => {
-    const favorites = FavoritesService.getAll();
+    const favorites = FavoritesService.getAll(req.userId);
     res.render('favorites', { favorites });
 });
 
 router.post('/favorites/add', (req, res) => {
     const { id, title, thumbnail, author, duration } = req.body;
-    FavoritesService.add({ id, title, thumbnail, author, duration });
+    FavoritesService.add(req.userId, { id, title, thumbnail, author, duration });
     res.redirect('/watch?v=' + id);
 });
 
 router.post('/favorites/remove', (req, res) => {
     const { id } = req.body;
-    FavoritesService.remove(id);
+    FavoritesService.remove(req.userId, id);
     const returnTo = req.body.returnTo || '/favorites';
     res.redirect(returnTo);
 });
 
 // Subscriptions
 router.get('/subscriptions', async (req, res) => {
-    const channels = SubscriptionsService.getAll();
+    const channels = SubscriptionsService.getAll(req.userId);
 
     // Fetch latest videos from each subscribed channel in parallel
     let feed = [];
@@ -207,7 +207,7 @@ function parseAge(text) {
 
 router.post('/subscriptions/add', (req, res) => {
     const { name, id, avatar } = req.body;
-    SubscriptionsService.add({ name, id, avatar });
+    SubscriptionsService.add(req.userId, { name, id, avatar });
     res.redirect('/channel?name=' + encodeURIComponent(name));
 });
 
@@ -217,7 +217,7 @@ router.get('/subscriptions/manager', (req, res) => {
 });
 
 router.post('/subscriptions/export', (req, res) => {
-    const data = SubscriptionsService.getAll();
+    const data = SubscriptionsService.getAll(req.userId);
     res.setHeader('Content-Disposition', 'attachment; filename="subscriptions.json"');
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(data, null, 2));
@@ -234,7 +234,7 @@ router.post('/subscriptions/import', async (req, res) => {
             if (Array.isArray(json)) {
                 json.forEach(ch => {
                     if (ch.name || ch.id) {
-                        SubscriptionsService.add(ch);
+                        SubscriptionsService.add(req.userId, ch);
                         count++;
                     }
                 });
@@ -255,7 +255,7 @@ router.post('/subscriptions/import', async (req, res) => {
                     // CSV format
                     const id = parts[0];
                     const name = parts[2] || parts[1]; // Title or URL
-                    SubscriptionsService.add({ id, name: name.replace(/"/g, ''), avatar: '' }); // Clean quotes
+                    SubscriptionsService.add(req.userId, { id, name: name.replace(/"/g, ''), avatar: '' }); // Clean quotes
                     count++;
                 } else if (trimmed.includes('youtube.com/')) {
                     // URL format
@@ -263,7 +263,7 @@ router.post('/subscriptions/import', async (req, res) => {
                     // Need to resolve. For now, try to extract handle
                     const m = trimmed.match(/@([\w.-]+)/);
                     if (m) {
-                        SubscriptionsService.add({ name: m[1], avatar: '' });
+                        SubscriptionsService.add(req.userId, { name: m[1], avatar: '' });
                         count++;
                     }
                 }
@@ -278,7 +278,7 @@ router.post('/subscriptions/import', async (req, res) => {
 
 router.post('/subscriptions/remove', (req, res) => {
     const { name } = req.body;
-    SubscriptionsService.remove(name);
+    SubscriptionsService.remove(req.userId, name);
     const returnTo = req.body.returnTo || '/subscriptions';
     res.redirect(returnTo);
 });
@@ -296,7 +296,7 @@ router.get('/channel', async (req, res, next) => {
         const data = await YoutubeService.getChannelVideos(channelId, channelName, page);
         const channelInfo = await YoutubeService.getChannelInfo(channelName || channelId);
 
-        const isSubscribed = SubscriptionsService.isSubscribed(channelInfo.name || channelName);
+        const isSubscribed = SubscriptionsService.isSubscribed(req.userId, channelInfo.name || channelName);
 
         res.render('channel', {
             channelName: channelInfo.name || data.channelName || channelName,
@@ -311,6 +311,21 @@ router.get('/channel', async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+});
+
+// Auth / Identity Management
+router.post('/auth/restore', (req, res) => {
+    const { userId } = req.body;
+    if (!userId || userId.length < 10) {
+        return res.redirect('/subscriptions/manager?error=Invalid+ID');
+    }
+
+    res.cookie('userId', userId.trim(), {
+        maxAge: 365 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: 'lax'
+    });
+    res.redirect('/subscriptions/manager?msg=ID+Restored');
 });
 
 module.exports = router;

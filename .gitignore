@@ -7,3 +7,8 @@ coverage
 dist
 build
 .vscode
+
+# SQLite
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
